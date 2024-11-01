@@ -13,6 +13,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "nanoid": "^5.0.8",
     "pinia": "^2.2.4",
     "rxjs": "^7.8.1",
     "vue": "^3.5.12"
