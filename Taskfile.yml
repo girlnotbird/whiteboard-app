@@ -1,0 +1,63 @@
+# https://taskfile.dev
+
+version: '3'
+
+tasks:
+  install:
+    desc: "Install all dependencies"
+    deps:
+      - task: install:backend
+      - task: install:frontend
+    cmds:
+      - echo "install complete"
+
+  install:backend:
+    desc: "Install backend dependencies"
+    dir: "./backend"
+    cmds:
+      - npm install
+
+  install:frontend:
+    desc: "Install frontend dependencies"
+    dir: "./frontend"
+    cmds:
+      - npm install
+
+  build:
+    desc: "Build all applications"
+    deps:
+      - task: build:backend
+      - task: build:frontend
+    cmds:
+      - echo "build complete"
+
+  build:backend:
+    desc: "Build the backend application"
+    dir: "./backend"
+    cmds:
+      - "npm run build"
+
+  build:frontend:
+    desc: "Build the frontend application"
+    dir: "./frontend"
+    cmds:
+      - "npm run build"
+
+  dev:
+    desc: "Run all applications"
+    cmds:
+      - task dev:frontend dev:backend --parallel
+
+  dev:backend:
+    desc: "Run the backend application"
+    dir: "./backend"
+    cmds:
+      - npm run start:dev
+    silent: true
+
+  dev:frontend:
+    desc: "Run the frontend application"
+    dir: "./frontend"
+    cmds:
+      - npm run dev
+    silent: true
