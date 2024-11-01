@@ -124,7 +124,8 @@ onUnmounted(() => {
     <path d="M0,0 L32,8 L16,16 L8,32 Z" fill="black"></path>
   </svg>
 
-  <svg :width="windowWidth.value" :height="windowHeight.value" :viewBox="viewBox" class="board">
+  <svg :width="windowWidth" :height="windowHeight" :viewBox="viewBox" class="board">
+  // removed .value on windowWidth and windowHeight, vue automatically unwraps the refs
     <template v-for="shape in shapes">
       <circle v-if="shape.kind == 'circle'" :key="shape.id" :cx="shape.center.x" :cy="shape.center.y" :r="shape.radius"
               fill="red" />
