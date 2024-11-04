@@ -1,5 +1,5 @@
-import { WebSocket } from 'ws';
 import { Logger } from '@nestjs/common';
+import { WebSocket } from 'ws';
 
 export class BoardSession {
   private readonly members = new Map<number, WebSocket>();

@@ -2,6 +2,8 @@
 import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
 import { nanoid } from 'nanoid'
 import { IBoardElement } from '@liveboard/common/src/board-elements'
+import { isOpenWebSocket, useBoard } from './composables/Board';
+import { isDrawShapeEvent, type DrawShapeEvent } from './types/types';
 
 const offsetX = ref(0.0)
 const offsetY = ref(0.0)
@@ -11,6 +13,8 @@ const mouseScreenY = ref(0.0)
 
 const windowWidth = ref(window.innerWidth)
 const windowHeight = ref(window.innerHeight)
+
+const board = useBoard('board');
 
 const viewBox = computed(() => {
   return `${offsetX.value} ${offsetY.value} ${windowWidth.value} ${windowHeight.value}`
@@ -45,13 +49,21 @@ const onMouseDown = (event: MouseEvent) => {
         x: event.clientX,
         y: event.clientY,
       })
-      boardElements.push({
+      const circle = {
         id: nanoid(),
         kind: 'circle',
         cx: center.x,
         cy: center.y,
         radius: 5,
-      })
+      }
+      boardElements.push(circle);
+      if (isOpenWebSocket(board.socket)) {
+        const boardEvent: DrawShapeEvent = {
+          eventType: "draw-shape",
+          shape: circle
+        }
+        board.socket.send(JSON.stringify(boardEvent));
+      }
       break
     }
     case 1: // middle/wheel click
@@ -78,10 +90,19 @@ const onMouseMove = (event: MouseEvent) => {
 }
 
 onMounted(() => {
+
   window.addEventListener('resize', onWindowResized)
   window.addEventListener('mouseup', onMouseUp)
   window.addEventListener('mousedown', onMouseDown)
   window.addEventListener('mousemove', onMouseMove)
+
+  board.connect();
+  board.socket?.addEventListener('message', (messageEvent) => {
+    const data: unknown = JSON.parse(messageEvent.data);
+    if (isDrawShapeEvent(data)) {
+      boardElements.push(data.shape);
+    }
+  })
 })
 
 onUnmounted(() => {
@@ -89,7 +110,9 @@ onUnmounted(() => {
   window.removeEventListener('mouseup', onMouseUp)
   window.removeEventListener('mousedown', onMouseDown)
   window.removeEventListener('mousemove', onMouseMove)
+  board.disconnect();
 })
+
 </script>
 
 <template>
