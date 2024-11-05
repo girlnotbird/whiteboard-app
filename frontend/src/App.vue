@@ -1,71 +1,74 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, reactive } from 'vue';
-import { nanoid } from 'nanoid';
+import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
+import { nanoid } from 'nanoid'
 
 interface IShapeBase {
-  id: string;
+  id: string
   boundingBox: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-  };
+    x: number
+    y: number
+    width: number
+    height: number
+  }
 }
 
 interface IShapeRect extends IShapeBase {
-  kind: 'rect';
+  kind: 'rect'
 }
 
 interface IShapeCircle extends IShapeBase {
-  kind: 'circle';
+  kind: 'circle'
   center: {
-    x: number;
-    y: number;
-  },
-  radius: number;
+    x: number
+    y: number
+  }
+  radius: number
 }
 
-type IShape = IShapeRect | IShapeCircle;
+type IShape = IShapeRect | IShapeCircle
 
-const offsetX = ref(0.0);
-const offsetY = ref(0.0);
+const offsetX = ref(0.0)
+const offsetY = ref(0.0)
 
-const mouseScreenX = ref(0.0);
-const mouseScreenY = ref(0.0);
+const mouseScreenX = ref(0.0)
+const mouseScreenY = ref(0.0)
 
-const windowWidth = ref(window.innerWidth);
-const windowHeight = ref(window.innerHeight);
+const windowWidth = ref(window.innerWidth)
+const windowHeight = ref(window.innerHeight)
 
 const viewBox = computed(() => {
-  return `${offsetX.value} ${offsetY.value} ${windowWidth.value} ${windowHeight.value}`;
-});
+  return `${offsetX.value} ${offsetY.value} ${windowWidth.value} ${windowHeight.value}`
+})
 
 const cursorStyle = computed(() => {
-  return `top: ${mouseScreenY.value}px; left: ${mouseScreenX.value}px;`;
-});
+  return `top: ${mouseScreenY.value}px; left: ${mouseScreenX.value}px;`
+})
 
-const shapes = reactive<IShape[]>([]);
+const shapes = reactive<IShape[]>([])
 
 const onWindowResized = () => {
-  windowWidth.value = window.innerWidth;
-  windowHeight.value = window.innerHeight;
-};
+  windowWidth.value = window.innerWidth
+  windowHeight.value = window.innerHeight
+}
 
-const screenToBoardCoordinates = (pos: { x: number, y: number }) => {
-  return { x: pos.x + offsetX.value, y: pos.y + offsetY.value };
-};
+const screenToBoardCoordinates = (pos: { x: number; y: number }) => {
+  return { x: pos.x + offsetX.value, y: pos.y + offsetY.value }
+}
 
-const boardToScreenCoordinates = (pos: { x: number, y: number }) => {
-  return { x: pos.x - offsetX.value, y: pos.y - offsetY.value };
-};
+const _boardToScreenCoordinates = (pos: { x: number; y: number }) => {
+  return { x: pos.x - offsetX.value, y: pos.y - offsetY.value }
+}
 
-const isDragging = ref(false);
+const isDragging = ref(false)
 
 const onMouseDown = (event: MouseEvent) => {
   switch (event.button) {
-    case 0: // left click
-    {
-      const center = screenToBoardCoordinates({ x: event.clientX, y: event.clientY });
+    case 0: {
+      // left click
+      const center = screenToBoardCoordinates({
+        x: event.clientX,
+        y: event.clientY,
+      })
       shapes.push({
         id: nanoid(),
         kind: 'circle',
@@ -77,60 +80,85 @@ const onMouseDown = (event: MouseEvent) => {
         },
         center,
         radius: 20,
-      });
-      break;
+      })
+      break
     }
     case 1: // middle/wheel click
-      isDragging.value = true;
-      break;
+      isDragging.value = true
+      break
     case 2: // right click
-      break;
+      break
     default:
-      break;
+      break
   }
-};
+}
 
 const onMouseUp = () => {
-  isDragging.value = false;
-};
+  isDragging.value = false
+}
 
 const onMouseMove = (event: MouseEvent) => {
-  mouseScreenX.value = event.clientX;
-  mouseScreenY.value = event.clientY;
+  mouseScreenX.value = event.clientX
+  mouseScreenY.value = event.clientY
 
   if (isDragging.value) {
-    offsetX.value -= event.movementX;
-    offsetY.value -= event.movementY;
+    offsetX.value -= event.movementX
+    offsetY.value -= event.movementY
   }
-};
+}
 
 onMounted(() => {
-  window.addEventListener('resize', onWindowResized);
-  window.addEventListener('mouseup', onMouseUp);
-  window.addEventListener('mousedown', onMouseDown);
-  window.addEventListener('mousemove', onMouseMove);
-});
+  window.addEventListener('resize', onWindowResized)
+  window.addEventListener('mouseup', onMouseUp)
+  window.addEventListener('mousedown', onMouseDown)
+  window.addEventListener('mousemove', onMouseMove)
+})
 
 onUnmounted(() => {
-  window.removeEventListener('resize', onWindowResized);
-  window.removeEventListener('mouseup', onMouseUp);
-  window.removeEventListener('mousedown', onMouseDown);
-  window.removeEventListener('mousemove', onMouseMove);
-});
+  window.removeEventListener('resize', onWindowResized)
+  window.removeEventListener('mouseup', onMouseUp)
+  window.removeEventListener('mousedown', onMouseDown)
+  window.removeEventListener('mousemove', onMouseMove)
+})
 </script>
 
 <template>
-  <svg class="cursor" :style="cursorStyle" viewBox="0 0 32 32" width="32" height="32">
+  <svg
+    class="cursor"
+    :style="cursorStyle"
+    viewBox="0 0 32 32"
+    width="32"
+    height="32"
+  >
     <path d="M0,0 L32,8 L16,16 L8,32 Z" fill="black"></path>
   </svg>
 
-  <svg :width="windowWidth" :height="windowHeight" :viewBox="viewBox" class="board">
-  // removed .value on windowWidth and windowHeight, vue automatically unwraps the refs
+  <svg
+    :width="windowWidth"
+    :height="windowHeight"
+    :viewBox="viewBox"
+    class="board"
+  >
+    // removed .value on windowWidth and windowHeight, vue automatically unwraps
+    the refs
     <template v-for="shape in shapes">
-      <circle v-if="shape.kind == 'circle'" :key="shape.id" :cx="shape.center.x" :cy="shape.center.y" :r="shape.radius"
-              fill="red" />
-      <rect v-if="shape.kind == 'rect'" :key="shape.id" :x="shape.boundingBox.x" :y="shape.boundingBox.y"
-            :width="shape.boundingBox.width" :height="shape.boundingBox.height" fill="red" />
+      <circle
+        v-if="shape.kind == 'circle'"
+        :key="shape.id"
+        :cx="shape.center.x"
+        :cy="shape.center.y"
+        :r="shape.radius"
+        fill="red"
+      />
+      <rect
+        v-if="shape.kind == 'rect'"
+        :key="shape.id"
+        :x="shape.boundingBox.x"
+        :y="shape.boundingBox.y"
+        :width="shape.boundingBox.width"
+        :height="shape.boundingBox.height"
+        fill="red"
+      />
     </template>
   </svg>
 

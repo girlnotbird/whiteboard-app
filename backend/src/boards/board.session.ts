@@ -5,8 +5,7 @@ export class BoardSession {
   private readonly members = new Map<number, WebSocket>();
   private nextMemberId = 0;
 
-  public constructor(private readonly boardId: string) {
-  }
+  public constructor(private readonly boardId: string) {}
 
   public addMember(socket: WebSocket): void {
     const id = this.nextMemberId++;
