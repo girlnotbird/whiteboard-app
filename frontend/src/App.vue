@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
 import { nanoid } from 'nanoid'
-import { IBoardElement } from '@liveboard/common/src/board-elements'
+import { type IBoardElement } from '@liveboard/common/src/board-elements'
 import { isOpenWebSocket, useBoard } from './composables/Board';
 import { isDrawShapeEvent, type DrawShapeEvent } from './types/types';
 
@@ -51,7 +51,7 @@ const onMouseDown = (event: MouseEvent) => {
       })
       const circle = {
         id: nanoid(),
-        kind: 'circle',
+        kind: 'circle' as const,
         cx: center.x,
         cy: center.y,
         radius: 5,
