@@ -1,0 +1,7 @@
+{
+  "name": "liveboard",
+  "workspaces": [
+    "frontend",
+    "backend"
+  ]
+}
