@@ -6,7 +6,6 @@ import { BoardService } from './boards/board.service';
 
 @WebSocketGateway({ path: '/api/v1/connect' })
 export class BoardSessionGateway implements OnGatewayConnection {
-
   public constructor(private readonly boardService: BoardService) {
     Logger.log('BoardSessionGateway created');
   }

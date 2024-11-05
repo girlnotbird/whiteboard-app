@@ -9,5 +9,4 @@ import { BoardSessionGateway } from './app.gateway';
   controllers: [AppController],
   providers: [AppService, BoardService, BoardSessionGateway],
 })
-export class AppModule {
-}
+export class AppModule {}

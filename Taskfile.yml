@@ -5,59 +5,51 @@ version: '3'
 tasks:
   install:
     desc: "Install all dependencies"
-    deps:
-      - task: install:backend
-      - task: install:frontend
     cmds:
-      - echo "install complete"
+      - npm install --workspaces
 
   install:backend:
     desc: "Install backend dependencies"
-    dir: "./backend"
     cmds:
-      - npm install
+      - npm install -w backend
 
   install:frontend:
     desc: "Install frontend dependencies"
-    dir: "./frontend"
     cmds:
-      - npm install
+      - npm install -w frontend
 
   build:
     desc: "Build all applications"
-    deps:
-      - task: build:backend
-      - task: build:frontend
     cmds:
-      - echo "build complete"
+      - npm run build --workspaces
 
   build:backend:
     desc: "Build the backend application"
-    dir: "./backend"
     cmds:
-      - "npm run build"
+      - npm run build -w backend
 
   build:frontend:
     desc: "Build the frontend application"
-    dir: "./frontend"
     cmds:
-      - "npm run build"
+      - npm run build -w frontend
 
   dev:
     desc: "Run all applications"
-    cmds:
-      - task dev:frontend dev:backend --parallel
+    deps:
+      - task: dev:backend
+      - task: dev:frontend
 
   dev:backend:
     desc: "Run the backend application"
-    dir: "./backend"
     cmds:
-      - npm run start:dev
-    silent: true
+      - npm run dev -w backend
 
   dev:frontend:
     desc: "Run the frontend application"
-    dir: "./frontend"
     cmds:
-      - npm run dev
-    silent: true
+      - npm run dev -w frontend
+
+  format:
+    desc: "Format files"
+    cmds:
+      - npm run format --workspaces

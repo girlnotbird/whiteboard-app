@@ -1,7 +1,7 @@
 # compiled output
-/dist
-/node_modules
-/build
+**/dist
+**/node_modules
+**/build
 
 # Logs
 logs
@@ -54,3 +54,19 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# local files
+*.local
+
+/cypress/videos/
+/cypress/screenshots/
+
+# Editor directories and files
+.idea
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+*.tsbuildinfo
