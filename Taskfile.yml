@@ -48,3 +48,8 @@ tasks:
     desc: "Run the frontend application"
     cmds:
       - npm run dev -w frontend
+
+  format:
+    desc: "Format files"
+    cmds:
+      - npm run format --workspaces

@@ -1,31 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
 import { nanoid } from 'nanoid'
-
-interface IShapeBase {
-  id: string
-  boundingBox: {
-    x: number
-    y: number
-    width: number
-    height: number
-  }
-}
-
-interface IShapeRect extends IShapeBase {
-  kind: 'rect'
-}
-
-interface IShapeCircle extends IShapeBase {
-  kind: 'circle'
-  center: {
-    x: number
-    y: number
-  }
-  radius: number
-}
-
-type IShape = IShapeRect | IShapeCircle
+import { IBoardElement } from '@liveboard/common/src/board-elements'
 
 const offsetX = ref(0.0)
 const offsetY = ref(0.0)
@@ -44,7 +20,7 @@ const cursorStyle = computed(() => {
   return `top: ${mouseScreenY.value}px; left: ${mouseScreenX.value}px;`
 })
 
-const shapes = reactive<IShape[]>([])
+const boardElements = reactive<IBoardElement[]>([])
 
 const onWindowResized = () => {
   windowWidth.value = window.innerWidth
@@ -69,24 +45,18 @@ const onMouseDown = (event: MouseEvent) => {
         x: event.clientX,
         y: event.clientY,
       })
-      shapes.push({
+      boardElements.push({
         id: nanoid(),
         kind: 'circle',
-        boundingBox: {
-          x: center.x - 20,
-          y: center.y - 20,
-          width: 40,
-          height: 40,
-        },
-        center,
-        radius: 20,
+        cx: center.x,
+        cy: center.y,
+        radius: 5,
       })
       break
     }
     case 1: // middle/wheel click
-      isDragging.value = true
-      break
     case 2: // right click
+      isDragging.value = true
       break
     default:
       break
@@ -138,26 +108,29 @@ onUnmounted(() => {
     :height="windowHeight"
     :viewBox="viewBox"
     class="board"
+    @contextmenu.prevent="true"
   >
-    // removed .value on windowWidth and windowHeight, vue automatically unwraps
-    the refs
-    <template v-for="shape in shapes">
+    <template v-for="elt in boardElements">
       <circle
-        v-if="shape.kind == 'circle'"
-        :key="shape.id"
-        :cx="shape.center.x"
-        :cy="shape.center.y"
-        :r="shape.radius"
-        fill="red"
+        v-if="elt.kind == 'circle'"
+        :key="elt.id"
+        :cx="elt.cx"
+        :cy="elt.cy"
+        :r="elt.radius"
+        :fill="elt.style?.fillColor ?? 'black'"
+        :stroke="elt.style?.strokeColor ?? undefined"
+        :stroke-width="elt.style?.strokeWidth ?? undefined"
       />
       <rect
-        v-if="shape.kind == 'rect'"
-        :key="shape.id"
-        :x="shape.boundingBox.x"
-        :y="shape.boundingBox.y"
-        :width="shape.boundingBox.width"
-        :height="shape.boundingBox.height"
-        fill="red"
+        v-if="elt.kind == 'rectangle'"
+        :key="elt.id"
+        :x="elt.x"
+        :y="elt.y"
+        :width="elt.width"
+        :height="elt.height"
+        :fill="elt.style?.fillColor ?? 'black'"
+        :stroke="elt.style?.strokeColor ?? undefined"
+        :stroke-width="elt.style?.strokeWidth ?? undefined"
       />
     </template>
   </svg>
@@ -165,7 +138,7 @@ onUnmounted(() => {
   <div class="debug-info">
     <div>Offset: {{ offsetX }}, {{ offsetY }}</div>
     <div>Size: {{ windowWidth }}, {{ windowHeight }}</div>
-    <div>Shapes: {{ shapes.length }}</div>
+    <div>Elems: {{ boardElements.length }}</div>
   </div>
 </template>
 

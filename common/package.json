@@ -1,0 +1,7 @@
+{
+  "name": "@liveboard/common",
+  "private": true,
+  "dependencies": {
+    "zod": "^3.23.8"
+  }
+}
