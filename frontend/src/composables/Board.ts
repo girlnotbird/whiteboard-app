@@ -1,8 +1,10 @@
-import type { RawBoardEvent } from '@/types/types'
-import { reactive, type Reactive } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 
-export function useBoard(boardName: string) {
-  let board: {
+export function useBoard(
+  boardName: string,
+  onMessage: (messageEvent: MessageEvent) => void,
+) {
+  const board: {
     connect: () => void
     disconnect: () => void
     socket: WebSocket | undefined
@@ -27,9 +29,14 @@ export function useBoard(boardName: string) {
     },
   }
 
-  function onMessage(event: MessageEvent<any>) {
-    // console.log(JSON.parse(event.data))
-  }
+  onMounted(() => {
+    board.connect()
+    board.socket?.addEventListener('message', onMessage)
+  })
+
+  onUnmounted(() => {
+    board.disconnect()
+  })
 
   return board
 }

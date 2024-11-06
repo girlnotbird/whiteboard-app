@@ -1,135 +1,88 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, reactive } from 'vue'
+import { ref, reactive } from 'vue'
 import { nanoid } from 'nanoid'
-import { type IBoardElement } from '@liveboard/common/src/board-elements'
-import { isOpenWebSocket, useBoard } from './composables/Board';
-import { isDrawShapeEvent, type DrawShapeEvent } from './types/types';
+import { type IBoardElement, type IBoardElementCircle } from '@liveboard/common/src/board-elements'
+import { isOpenWebSocket, useBoard } from './composables/Board'
+import { isDrawCircleEvent, type IDrawCircleEvent } from '@liveboard/common/src/board-events'
+import { useViewBox } from './composables/ViewBox'
+import { screenToBoardCoordinates } from './utils/ConvertCoords'
+import BoardCursor from "./components/BoardCursor.vue"
 
-const offsetX = ref(0.0)
-const offsetY = ref(0.0)
-
-const mouseScreenX = ref(0.0)
-const mouseScreenY = ref(0.0)
-
-const windowWidth = ref(window.innerWidth)
-const windowHeight = ref(window.innerHeight)
-
-const board = useBoard('board');
-
-const viewBox = computed(() => {
-  return `${offsetX.value} ${offsetY.value} ${windowWidth.value} ${windowHeight.value}`
-})
-
-const cursorStyle = computed(() => {
-  return `top: ${mouseScreenY.value}px; left: ${mouseScreenX.value}px;`
-})
+const board = useBoard('board', onMessage)
 
 const boardElements = reactive<IBoardElement[]>([])
 
-const onWindowResized = () => {
-  windowWidth.value = window.innerWidth
-  windowHeight.value = window.innerHeight
-}
+const viewBox = useViewBox()
 
-const screenToBoardCoordinates = (pos: { x: number; y: number }) => {
-  return { x: pos.x + offsetX.value, y: pos.y + offsetY.value }
-}
+const { windowWidth, windowHeight, offsetX, offsetY, viewBoxAttr } = viewBox
 
-const _boardToScreenCoordinates = (pos: { x: number; y: number }) => {
-  return { x: pos.x - offsetX.value, y: pos.y - offsetY.value }
-}
-
-const isDragging = ref(false)
-
-const onMouseDown = (event: MouseEvent) => {
-  switch (event.button) {
-    case 0: {
-      // left click
-      const center = screenToBoardCoordinates({
-        x: event.clientX,
-        y: event.clientY,
-      })
-      const circle = {
-        id: nanoid(),
-        kind: 'circle' as const,
-        cx: center.x,
-        cy: center.y,
-        radius: 5,
-      }
-      boardElements.push(circle);
-      if (isOpenWebSocket(board.socket)) {
-        const boardEvent: DrawShapeEvent = {
-          eventType: "draw-shape",
-          shape: circle
-        }
-        board.socket.send(JSON.stringify(boardEvent));
-      }
-      break
-    }
-    case 1: // middle/wheel click
-    case 2: // right click
-      isDragging.value = true
-      break
-    default:
-      break
+function onMessage(messageEvent: MessageEvent) {
+  const data: unknown = JSON.parse(messageEvent.data)
+  if (isDrawCircleEvent(data)) {
+    const circle: IBoardElementCircle = data.shape;
+    boardElements.push(circle)
+  } else {
+    console.log("data is not a circle.")
   }
 }
 
-const onMouseUp = () => {
-  isDragging.value = false
+function drawCircle(event: MouseEvent) {
+  const center = screenToBoardCoordinates(
+    {
+      x: event.clientX,
+      y: event.clientY,
+    },
+    {
+      x: offsetX.value,
+      y: offsetY.value,
+    },
+  )
+  const circle: IBoardElementCircle = {
+    id: nanoid(),
+    kind: 'circle',
+    cx: center.x,
+    cy: center.y,
+    radius: 5,
+  }
+  boardElements.push(circle)
+  if (isOpenWebSocket(board.socket)) {
+    const boardEvent: IDrawCircleEvent = {
+      eventType: 'draw-circle',
+      shape: circle,
+    }
+    board.socket.send(JSON.stringify(boardEvent))
+  }
 }
 
-const onMouseMove = (event: MouseEvent) => {
-  mouseScreenX.value = event.clientX
-  mouseScreenY.value = event.clientY
-
+// Viewbox dragging behavior
+const isDragging = ref(false);
+const startDrag = () => {
+  isDragging.value = true;
+}
+const dragViewbox = (event: MouseEvent) => {
   if (isDragging.value) {
     offsetX.value -= event.movementX
     offsetY.value -= event.movementY
   }
 }
-
-onMounted(() => {
-
-  window.addEventListener('resize', onWindowResized)
-  window.addEventListener('mouseup', onMouseUp)
-  window.addEventListener('mousedown', onMouseDown)
-  window.addEventListener('mousemove', onMouseMove)
-
-  board.connect();
-  board.socket?.addEventListener('message', (messageEvent) => {
-    const data: unknown = JSON.parse(messageEvent.data);
-    if (isDrawShapeEvent(data)) {
-      boardElements.push(data.shape);
-    }
-  })
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', onWindowResized)
-  window.removeEventListener('mouseup', onMouseUp)
-  window.removeEventListener('mousedown', onMouseDown)
-  window.removeEventListener('mousemove', onMouseMove)
-  board.disconnect();
-})
+const endDrag = () => {
+  isDragging.value = false
+}
 
 </script>
 
 <template>
-  <svg
-    class="cursor"
-    :style="cursorStyle"
-    viewBox="0 0 32 32"
-    width="32"
-    height="32"
-  >
-    <path d="M0,0 L32,8 L16,16 L8,32 Z" fill="black"></path>
-  </svg>
+  <BoardCursor
+    @leftClick="drawCircle"
+    @dragStart="startDrag"
+    @move="dragViewbox"
+    @dragEnd="endDrag"
+  />
 
   <svg
     :width="windowWidth"
     :height="windowHeight"
-    :viewBox="viewBox"
+    :viewBoxAttr="viewBoxAttr"
     class="board"
     @contextmenu.prevent="true"
   >
