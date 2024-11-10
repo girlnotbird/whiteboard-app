@@ -8,6 +8,14 @@ tasks:
     cmds:
       - npm install --workspaces
 
+  reinstall:
+    desc: "Nuke & re-install all dependencies"
+    cmds:
+      - rm -rf ./node_modules/*
+      - rm -rf ./backend/node_modules/*
+      - rm -rf ./frontend/node_modules/*
+      - task: install
+
   install:backend:
     desc: "Install backend dependencies"
     cmds:

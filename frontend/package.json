@@ -13,6 +13,8 @@
   },
   "dependencies": {
     "@liveboard/common": "../common",
+    "@vueuse/core": "^11.2.0",
+    "@vueuse/rxjs": "^11.2.0",
     "nanoid": "^5.0.8",
     "pinia": "^2.2.4",
     "rxjs": "^7.8.1",

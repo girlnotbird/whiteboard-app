@@ -1,8 +1,8 @@
+import { Logger } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { NestFactory } from '@nestjs/core';
 import { WsAdapter } from '@nestjs/platform-ws';
 
-const NODE_ENV = process.env.NODE_ENV ?? "development";
 const PORT = process.env.PORT ?? 3000;
 
 async function bootstrap() {
@@ -10,9 +10,7 @@ async function bootstrap() {
   app.useWebSocketAdapter(new WsAdapter(app));
 
   await app.listen(PORT);
-  if(NODE_ENV==="development") {
-    console.log(`\nNow listening @ port ${PORT}`);
-  }
+  Logger.log(`\nNow listening @ port ${PORT}`);
 }
 
 bootstrap().catch((err) => {

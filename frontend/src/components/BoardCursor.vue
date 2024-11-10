@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useMouseCoords } from '@/composables/MouseCoords'
-import { computed, onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 
 const emit = defineEmits<{
   leftClick: [event: MouseEvent]
@@ -10,12 +9,6 @@ const emit = defineEmits<{
   dragEnd: []
   move: [event: MouseEvent]
 }>()
-
-const { x: mouseScreenX, y: mouseScreenY } = useMouseCoords()
-
-const cursorStyle = computed(() => {
-  return `top: ${mouseScreenY.value}px; left: ${mouseScreenX.value}px;`
-})
 
 function onMouseDown(event: MouseEvent) {
   switch (event.button) {
@@ -66,15 +59,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <svg
-    class="cursor"
-    :style="cursorStyle"
-    viewBoxAttr="0 0 32 32"
-    width="32"
-    height="32"
-  >
-    <path d="M0,0 L32,8 L16,16 L8,32 Z" fill="black"></path>
-  </svg>
+  <slot name="cursor"></slot>
 </template>
 
 <style scoped></style>

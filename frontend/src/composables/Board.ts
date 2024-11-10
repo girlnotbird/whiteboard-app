@@ -1,5 +1,6 @@
 import { onMounted, onUnmounted } from 'vue'
 
+
 export function useBoard(
   boardName: string,
   onMessage: (messageEvent: MessageEvent) => void,
@@ -9,7 +10,6 @@ export function useBoard(
     disconnect: () => void
     socket: WebSocket | undefined
   } = {
-    socket: undefined,
     connect: function connect() {
       if (isOpenWebSocket(this.socket)) {
         throw new Error('Already connected.')
