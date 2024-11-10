@@ -1,16 +1,16 @@
 import { computed, ref } from "vue"
-import { useWindowSize } from "./TrackWindowSize";
+import { useWindowSize } from "@vueuse/core";
 
 export function useViewBox() {
 
   const offsetX = ref(0.0)
   const offsetY = ref(0.0)
 
-  const {windowWidth, windowHeight} = useWindowSize();
+  const { width: windowWidth, height: windowHeight } = useWindowSize();
 
-  const viewBoxAttr = computed(() => {
+  const viewBox = computed(() => {
     return `${offsetX.value} ${offsetY.value} ${windowWidth.value} ${windowHeight.value}`
   });
 
-  return {windowWidth, windowHeight, offsetX, offsetY, viewBoxAttr};
+  return {windowWidth, windowHeight, offsetX, offsetY, viewBox};
 }

@@ -1,121 +1,132 @@
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { nanoid } from 'nanoid'
-import { type IBoardElement, type IBoardElementCircle } from '@liveboard/common/src/board-elements'
-import { isOpenWebSocket, useBoard } from './composables/Board'
-import { isDrawCircleEvent, type IDrawCircleEvent } from '@liveboard/common/src/board-events'
-import { useViewBox } from './composables/ViewBox'
-import { screenToBoardCoordinates } from './utils/ConvertCoords'
-import BoardCursor from "./components/BoardCursor.vue"
+import BoardView from './components/BoardView.vue'
 
-const board = useBoard('board', onMessage)
+// import { ref, reactive } from 'vue'
+// import { nanoid } from 'nanoid'
 
-const boardElements = reactive<IBoardElement[]>([])
+// import {
+//   type IBoardElement,
+//   type IBoardElementCircle,
+// } from '@liveboard/common/src/board-elements'
 
-const viewBox = useViewBox()
+// import {
+//   isDrawCircleEvent,
+//   type IDrawCircleEvent,
+// } from '@liveboard/common/src/board-events'
 
-const { windowWidth, windowHeight, offsetX, offsetY, viewBoxAttr } = viewBox
+// import { isOpenWebSocket, useBoard } from './composables/Board'
+// import { useViewBox } from './composables/ViewBox'
+// import { screenToBoardCoordinates } from './utils/ConvertCoords'
+// import BoardCursor from './components/BoardCursor.vue'
 
-function onMessage(messageEvent: MessageEvent) {
-  const data: unknown = JSON.parse(messageEvent.data)
-  if (isDrawCircleEvent(data)) {
-    const circle: IBoardElementCircle = data.shape;
-    boardElements.push(circle)
-  } else {
-    console.log("data is not a circle.")
-  }
-}
+// const board = useBoard('board', onMessage)
+// const boardElements = reactive<IBoardElement[]>([])
 
-function drawCircle(event: MouseEvent) {
-  const center = screenToBoardCoordinates(
-    {
-      x: event.clientX,
-      y: event.clientY,
-    },
-    {
-      x: offsetX.value,
-      y: offsetY.value,
-    },
-  )
-  const circle: IBoardElementCircle = {
-    id: nanoid(),
-    kind: 'circle',
-    cx: center.x,
-    cy: center.y,
-    radius: 5,
-  }
-  boardElements.push(circle)
-  if (isOpenWebSocket(board.socket)) {
-    const boardEvent: IDrawCircleEvent = {
-      eventType: 'draw-circle',
-      shape: circle,
-    }
-    board.socket.send(JSON.stringify(boardEvent))
-  }
-}
+// const { windowWidth, windowHeight, offsetX, offsetY, viewBox } = useViewBox()
 
-// Viewbox dragging behavior
-const isDragging = ref(false);
-const startDrag = () => {
-  isDragging.value = true;
-}
-const dragViewbox = (event: MouseEvent) => {
-  if (isDragging.value) {
-    offsetX.value -= event.movementX
-    offsetY.value -= event.movementY
-  }
-}
-const endDrag = () => {
-  isDragging.value = false
-}
+// function onMessage(messageEvent: MessageEvent) {
+//   const data: unknown = JSON.parse(messageEvent.data)
+//   if (isDrawCircleEvent(data)) {
+//     const circle: IBoardElementCircle = data.shape
+//     boardElements.push(circle)
+//   } else {
+//     console.log('data is not a circle.')
+//   }
+// }
 
+// function drawCircle(event: MouseEvent) {
+//   const center = screenToBoardCoordinates(
+//     {
+//       x: event.clientX,
+//       y: event.clientY,
+//     },
+//     {
+//       x: offsetX.value,
+//       y: offsetY.value,
+//     },
+//   )
+//   const circle: IBoardElementCircle = {
+//     id: nanoid(),
+//     kind: 'circle',
+//     cx: center.x,
+//     cy: center.y,
+//     radius: 5,
+//   }
+//   boardElements.push(circle)
+//   if (isOpenWebSocket(board.socket)) {
+//     const boardEvent: IDrawCircleEvent = {
+//       eventType: 'draw-circle',
+//       shape: circle,
+//     }
+//     board.socket.send(JSON.stringify(boardEvent))
+//   }
+// }
+
+// // Viewbox dragging behavior
+// const isDragging = ref(false)
+// const startDrag = () => {
+//   isDragging.value = true
+// }
+// const dragViewbox = (event: MouseEvent) => {
+//   if (isDragging.value) {
+//     offsetX.value -= event.movementX
+//     offsetY.value -= event.movementY
+//   }
+// }
+// const endDrag = () => {
+//   isDragging.value = false
+// }
 </script>
 
 <template>
-  <BoardCursor
+  <BoardView />
+  <!-- Renderless Cursor Component -->
+  <!--
+    <BoardCursor
     @leftClick="drawCircle"
     @dragStart="startDrag"
     @move="dragViewbox"
     @dragEnd="endDrag"
-  />
-
-  <svg
+    />
+    
+    <svg
     :width="windowWidth"
     :height="windowHeight"
-    :viewBoxAttr="viewBoxAttr"
+    :viewBox="viewBox"
     class="board"
     @contextmenu.prevent="true"
-  >
+    >
     <template v-for="elt in boardElements">
       <circle
-        v-if="elt.kind == 'circle'"
-        :key="elt.id"
-        :cx="elt.cx"
-        :cy="elt.cy"
-        :r="elt.radius"
-        :fill="elt.style?.fillColor ?? 'black'"
-        :stroke="elt.style?.strokeColor ?? undefined"
-        :stroke-width="elt.style?.strokeWidth ?? undefined"
+      v-if="elt.kind == 'circle'"
+      :key="elt.id"
+      :cx="elt.cx"
+      :cy="elt.cy"
+      :r="elt.radius"
+      :fill="elt.style?.fillColor ?? 'black'"
+      :stroke="elt.style?.strokeColor ?? undefined"
+      :stroke-width="elt.style?.strokeWidth ?? undefined"
       />
       <rect
-        v-if="elt.kind == 'rectangle'"
-        :key="elt.id"
-        :x="elt.x"
-        :y="elt.y"
-        :width="elt.width"
-        :height="elt.height"
-        :fill="elt.style?.fillColor ?? 'black'"
-        :stroke="elt.style?.strokeColor ?? undefined"
-        :stroke-width="elt.style?.strokeWidth ?? undefined"
+      v-if="elt.kind == 'rectangle'"
+      :key="elt.id"
+      :x="elt.x"
+      :y="elt.y"
+      :width="elt.width"
+      :height="elt.height"
+      :fill="elt.style?.fillColor ?? 'black'"
+      :stroke="elt.style?.strokeColor ?? undefined"
+      :stroke-width="elt.style?.strokeWidth ?? undefined"
       />
     </template>
-  </svg>
-
-  <div class="debug-info">
-    <div>Offset: {{ offsetX }}, {{ offsetY }}</div>
-    <div>Size: {{ windowWidth }}, {{ windowHeight }}</div>
-    <div>Elems: {{ boardElements.length }}</div>
-  </div>
+    </svg>
+    
+    <div class="debug-info">
+      <div>Offset: {{ offsetX }}, {{ offsetY }}</div>
+      <div>Size: {{ windowWidth }}, {{ windowHeight }}</div>
+      <div>Elems: {{ boardElements.length }}</div>
+    </div>
+    -->
 </template>
 
 <style scoped>
