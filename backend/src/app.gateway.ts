@@ -1,8 +1,9 @@
-import { OnGatewayConnection, WebSocketGateway } from '@nestjs/websockets';
-import { WebSocket } from 'ws';
-import { IncomingMessage } from 'http';
 import { HttpException, HttpStatus, Logger } from '@nestjs/common';
+import { OnGatewayConnection, WebSocketGateway } from '@nestjs/websockets';
+
 import { BoardService } from './boards/board.service';
+import { IncomingMessage } from 'http';
+import { WebSocket } from 'ws';
 
 @WebSocketGateway({ path: '/api/v1/connect' })
 export class BoardSessionGateway implements OnGatewayConnection {

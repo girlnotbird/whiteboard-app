@@ -1,5 +1,4 @@
 import { z } from "zod"
-import { isPlainObject } from "./general"
 import { zBoardElementCircle } from "./board-elements";
 
 /**
