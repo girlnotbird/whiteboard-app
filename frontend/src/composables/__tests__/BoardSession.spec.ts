@@ -62,9 +62,7 @@ describe('useBoardSession()', () => {
     expect(receiver.value instanceof Observable).toBe(true);
     expect(transmitter.value instanceof WebSocketSubject).toBe(true);
   })
-
-  describe('receiver', () => {})
-  describe('transmitter', () => {})
+  
 })
 
 // describe('BoardSession playground()', () => {

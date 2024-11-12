@@ -1,4 +1,5 @@
 import { computed, ref } from "vue"
+
 import { useWindowSize } from "@vueuse/core";
 
 export function useViewBox() {
