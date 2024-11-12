@@ -1,23 +1,17 @@
 <script setup lang="ts">
-import { webSocket, type WebSocketSubject } from 'rxjs/webSocket'
+import { useBoardSession } from '@/composables/BoardSession';
 import { from, useSubscription, useSubject } from '@vueuse/rxjs'
 import { Subject, switchMap, finalize } from 'rxjs'
-import { computed, type Ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
   boardName: string
 }>()
 
-const toServerSubject = new Subject<unknown>()
+const boardName = ref(props.boardName);
+const {receiver, transmitter} = useBoardSession(boardName);
 
-const boardName$ = from(computed(() => props.boardName))
-const x = boardName$.pipe(
-  switchMap(name => {
-    const ws = webSocket<unknown>('...')
-    const subscriptionToOut = toServerSubject.subscribe(ws)
-    return ws.pipe(finalize(() => subscriptionToOut.unsubscribe()))
-  }),
-)
+
 </script>
 
 <template>
