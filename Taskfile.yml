@@ -18,6 +18,15 @@ tasks:
     cmds:
       - npm install -w frontend
 
+  reinstall:
+    desc: "Re-install all dependencies"
+    cmds:
+      - rm -rf node_modules
+      - rm -rf common/node_modules
+      - rm -rf backend/node_modules
+      - rm -rf frontend/node_modules
+      - task: install
+
   build:
     desc: "Build all applications"
     cmds:

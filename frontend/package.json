@@ -3,6 +3,10 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "npm": ">=10.9.0",
+    "node": ">=20.0.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
@@ -13,10 +17,12 @@
   },
   "dependencies": {
     "@liveboard/common": "../common",
+    "@vueuse/core": "^11.2.0",
     "nanoid": "^5.0.8",
     "pinia": "^2.2.4",
     "rxjs": "^7.8.1",
-    "vue": "^3.5.12"
+    "vue": "^3.5.12",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
