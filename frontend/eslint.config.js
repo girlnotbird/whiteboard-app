@@ -1,6 +1,6 @@
-import pluginVue from 'eslint-plugin-vue';
-import vueTsEslintConfig from '@vue/eslint-config-typescript';
-import skipFormatting from '@vue/eslint-config-prettier/skip-formatting';
+import pluginVue from 'eslint-plugin-vue'
+import vueTsEslintConfig from '@vue/eslint-config-typescript'
+import skipFormatting from '@vue/eslint-config-prettier/skip-formatting'
 
 export default [
   {
@@ -19,7 +19,14 @@ export default [
 
   {
     rules: {
-      '@typescript-eslint/no-unused-vars': ['warn', { 'varsIgnorePattern': '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        {
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+        },
+      ],
+      '@typescript-eslint/no-explicit-any': ['off'],
     },
   },
-];
+]
