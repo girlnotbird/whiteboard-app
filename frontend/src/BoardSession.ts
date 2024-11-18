@@ -18,6 +18,14 @@ export class BoardSession {
     this.attachToWebSocket(socket)
   }
 
+  public endCurrentSession(err?: any) {
+    if (err) {
+      console.error('unexpected error, ending session. Error: ')
+      console.error(err)
+    }
+    this.detachFromWebSocket()
+  }
+
   public get isOpen(): boolean {
     return this.notClosedStates.includes(this.socket?.readyState as any)
   }
@@ -31,11 +39,24 @@ export class BoardSession {
     this.socket!.send(JSON.stringify(evt))
   }
 
+  public getEventStream() {
+    return this.fromServerSubject
+  }
+
   private detachFromWebSocket() {
     try {
-      this.socket?.removeEventListener('message', this.onWebSocketMessage)
-      this.socket?.removeEventListener('error', this.onWebSocketError)
-      this.socket?.removeEventListener('close', this.onWebSocketClose)
+      this.socket?.removeEventListener(
+        'message',
+        this.onWebSocketMessage.bind(this),
+      )
+      this.socket?.removeEventListener(
+        'error',
+        this.onWebSocketError.bind(this),
+      )
+      this.socket?.removeEventListener(
+        'close',
+        this.onWebSocketClose.bind(this),
+      )
       this.socket?.close()
     } finally {
       this.socket = null
@@ -44,9 +65,10 @@ export class BoardSession {
 
   private attachToWebSocket(socket: WebSocket) {
     this.socket = socket
-    this.socket.addEventListener('message', this.onWebSocketMessage)
-    this.socket.addEventListener('error', this.onWebSocketError)
-    this.socket.addEventListener('close', this.onWebSocketClose)
+    // The .bind is necessary because in the context of socket.addEventListener, without .bind, this is socket, not the session instance
+    this.socket.addEventListener('message', this.onWebSocketMessage.bind(this))
+    this.socket.addEventListener('error', this.onWebSocketError.bind(this))
+    this.socket.addEventListener('close', this.onWebSocketClose.bind(this))
   }
 
   private onWebSocketMessage(evt: WebSocketEventMap['message']) {

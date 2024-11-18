@@ -29,7 +29,8 @@ export class BoardSession {
 
     socket.addEventListener('message', (event) => {
       for (const [otherId, otherSocket] of this.members.entries()) {
-        if (otherId == id) continue;
+        if (otherId == id) {
+        } //continue;
 
         otherSocket.send(event.data);
       }
