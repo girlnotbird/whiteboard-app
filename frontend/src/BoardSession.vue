@@ -1,70 +1,57 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive } from 'vue'
+import { reactive, watch } from 'vue'
+import { useSubscription } from '@vueuse/rxjs'
 import {
   type IBoardElementDeleteEvent,
   type IBoardElementUpsertEvent,
   type IBoardEvent,
   type IBoardSnapshotEvent,
-  type IRawBoardEvent,
-  zBoardElementDeleteEvent,
-  zBoardElementUpsertEvent,
-  zBoardEvent,
-  zBoardSnapshotEvent,
 } from '@liveboard/common/src/board-events'
 import { BoardSession } from './BoardSession'
-import type { Observer, Subscription } from 'rxjs'
 import type { IBoardElement } from '@liveboard/common/src/board-elements'
 import type { MouseEventWithPosAndBtn } from './BoardView.vue'
 import { nanoid } from 'nanoid'
 import BoardView from './BoardView.vue'
-
-const defaultHandlers = {
-  next: handleStreamEvent,
-  error: (err: any) => {
-    session.endCurrentSession(err)
-  },
-  complete: () => {
-    session.endCurrentSession()
-  },
-}
-
-let activeHandlers: Observer<IRawBoardEvent>
-let activeSubscription: Subscription
 
 const props = defineProps<{
   boardName: string
 }>()
 
 const session = new BoardSession()
+const boardElements = reactive<Map<string, IBoardElement>>(new Map())
 
-const socket = computed(() => {
-  return new WebSocket(
-    `ws://localhost:3000/api/v1/connect?board=${props.boardName}`,
+watch(props, newProps => {
+  const socket = new WebSocket(
+    `ws://localhost:3000/api/v1/connect?board=${newProps.boardName}`,
   )
-})
+  session.setWebSocket(socket)
+}, {immediate: true})
 
-const boardElements = reactive<IBoardElement[]>([])
+useSubscription(
+  session.getEventStream().subscribe({
+    next: handleStreamEvent,
+    error: (err: any) => {
+      session.endCurrentSession(err)
+    },
+    complete: () => {
+      session.endCurrentSession()
+    },
+  }),
+)
 
-function handleStreamEvent(event: IRawBoardEvent) {
+function handleStreamEvent(event: IBoardEvent) {
   try {
-    const parsedEvent: IBoardEvent = zBoardEvent.parse(event)
-    switch (parsedEvent.type) {
+    switch (event.type) {
       case 'board-element-delete': {
-        const deleteEvent: IBoardElementDeleteEvent =
-          zBoardElementDeleteEvent.parse(parsedEvent)
-        onDelete(deleteEvent.data)
+        onDelete(event.data)
         break
       }
       case 'board-element-upsert': {
-        const upsertEvent: IBoardElementUpsertEvent =
-          zBoardElementUpsertEvent.parse(parsedEvent)
-        onUpsert(upsertEvent.data)
+        onUpsert(event.data)
         break
       }
       case 'board-snapshot': {
-        const snapshotEvent: IBoardSnapshotEvent =
-          zBoardSnapshotEvent.parse(parsedEvent)
-        onSnapshot(snapshotEvent.data)
+        onSnapshot(event.data)
         break
       }
     }
@@ -77,18 +64,7 @@ function handleStreamEvent(event: IRawBoardEvent) {
 
 function onDelete(data: IBoardElementDeleteEvent['data']) {
   try {
-    const matchingElements = boardElements.filter(elem => {
-      return elem.id === data.id
-    })
-    if (matchingElements.length === 0) {
-      throw new Error('element not found')
-    }
-    if (matchingElements.length > 1) {
-      throw new Error('more than one element with given ID')
-    }
-    const elem = matchingElements[0]
-    const index = boardElements.indexOf(elem)
-    boardElements.splice(index, 1)
+    boardElements.delete(data.id)
   } catch (err) {
     console.error(err)
     return
@@ -97,14 +73,7 @@ function onDelete(data: IBoardElementDeleteEvent['data']) {
 
 function onUpsert(data: IBoardElementUpsertEvent['data']) {
   try {
-    const index = boardElements.findIndex(elem => {
-      return elem.id === data.id
-    })
-    if (index !== -1) {
-      boardElements[index] = data
-    } else {
-      boardElements.push(data)
-    }
+    boardElements.set(data.id, data)
   } catch (err) {
     console.error(err)
     return
@@ -112,8 +81,10 @@ function onUpsert(data: IBoardElementUpsertEvent['data']) {
 }
 
 function onSnapshot(data: IBoardSnapshotEvent['data']) {
-  boardElements.splice(0, boardElements.length)
-  boardElements.push(...data)
+  boardElements.clear()
+  data.forEach(element => {
+    boardElements.set(element.id, element)
+  })
 }
 
 function onMouseDown(evt: MouseEventWithPosAndBtn) {
@@ -139,16 +110,6 @@ function onMouseDown(evt: MouseEventWithPosAndBtn) {
       break
   }
 }
-
-onMounted(() => {
-  session.setWebSocket(socket.value)
-  activeHandlers = defaultHandlers
-  activeSubscription = session.getEventStream().subscribe(activeHandlers)
-})
-
-onUnmounted(() => {
-  activeSubscription.unsubscribe()
-})
 </script>
 
 <template>

@@ -27,7 +27,7 @@ import {type IBoardElement} from '@liveboard/common/src/board-elements'
 import {useResizeObserver} from '@vueuse/core'
 
 const props = defineProps<{
-  elements: readonly IBoardElement[]
+  elements: Map<string,IBoardElement>
 }>()
 
 const emit = defineEmits<{
@@ -170,7 +170,7 @@ onBeforeUnmount(() => {
     <rect x="100" y="100" width="300" height="200" fill="red"/>
     <circle cx="200" cy="400" r="128" fill="orange"/>
 
-    <template v-for="elt in props.elements">
+    <template v-for="[_id, elt] in props.elements">
       <circle
         v-if="elt.kind == 'circle'"
         :key="elt.id"

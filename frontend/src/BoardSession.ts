@@ -2,14 +2,14 @@ import { Subject } from 'rxjs'
 
 import {
   type IBoardEvent,
-  type IRawBoardEvent,
   zBoardEvent,
 } from '@liveboard/common/src/board-events'
 
 export class BoardSession {
   private readonly notClosedStates = [WebSocket.CONNECTING, WebSocket.OPEN]
-  private readonly fromServerSubject = new Subject<IRawBoardEvent>()
+  private readonly fromServerSubject = new Subject<IBoardEvent>()
   private socket: WebSocket | null = null
+  private connAbortController: AbortController | null = null
 
   public constructor() {}
 
@@ -45,30 +45,29 @@ export class BoardSession {
 
   private detachFromWebSocket() {
     try {
-      this.socket?.removeEventListener(
-        'message',
-        this.onWebSocketMessage.bind(this),
-      )
-      this.socket?.removeEventListener(
-        'error',
-        this.onWebSocketError.bind(this),
-      )
-      this.socket?.removeEventListener(
-        'close',
-        this.onWebSocketClose.bind(this),
-      )
+      this.connAbortController?.abort() // removes event listeners from socket
       this.socket?.close()
     } finally {
       this.socket = null
+      this.connAbortController = null
     }
   }
 
   private attachToWebSocket(socket: WebSocket) {
     this.socket = socket
+    this.connAbortController = new AbortController()
     // The .bind is necessary because in the context of socket.addEventListener, without .bind, this is socket, not the session instance
-    this.socket.addEventListener('message', this.onWebSocketMessage.bind(this))
-    this.socket.addEventListener('error', this.onWebSocketError.bind(this))
-    this.socket.addEventListener('close', this.onWebSocketClose.bind(this))
+    this.socket.addEventListener(
+      'message',
+      this.onWebSocketMessage.bind(this),
+      { signal: this.connAbortController.signal },
+    )
+    this.socket.addEventListener('error', this.onWebSocketError.bind(this), {
+      signal: this.connAbortController.signal,
+    })
+    this.socket.addEventListener('close', this.onWebSocketClose.bind(this), {
+      signal: this.connAbortController.signal,
+    })
   }
 
   private onWebSocketMessage(evt: WebSocketEventMap['message']) {
